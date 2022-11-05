@@ -1,0 +1,261 @@
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity Aula8 is
+  -- Total de bits das entradas e saidas
+  generic (
+        simulacao : boolean := FALSE -- para gravar na placa, altere de TRUE para FALSE
+  );
+  port   (
+    CLOCK_50 : in std_logic;
+    KEY: in std_logic_vector(3 downto 0);
+	 FPGA_RESET_N: in std_logic;
+    SW: in std_logic_vector(9 downto 0);
+    LEDR  : out std_logic_vector(9 downto 0);
+	 PC_OUT : out std_logic_vector(8 downto 0);
+	 HEX0 : out std_logic_vector (6 downto 0);
+	 HEX1 : out std_logic_vector (6 downto 0);
+	 HEX2 : out std_logic_vector (6 downto 0);
+	 HEX3 : out std_logic_vector (6 downto 0);
+	 HEX4 : out std_logic_vector (6 downto 0);
+	 HEX5 : out std_logic_vector (6 downto 0);
+	 Dado_HEX : out std_logic_vector (3 downto 0)
+
+  );
+end entity;
+
+
+architecture arquitetura of Aula8 is
+  signal CLK : std_logic;
+  signal decBlockOut : std_logic_vector(7 downto 0); 
+  signal romToCPU : std_logic_vector(15 downto 0);
+  signal dataIn : std_logic_vector(7 downto 0);
+  signal dataRam : std_logic_vector(7 downto 0);
+  signal Data_Address : std_logic_vector(8 downto 0);
+  signal cpuToROM : std_logic_vector (8 downto 0);
+  signal rd: std_logic;
+  signal wr: std_logic;
+  signal habilitaFF : std_logic;
+  signal habilitaFF2 : std_logic;
+  signal habilitaHEX0 : std_logic;
+  signal habilitaHEX1 : std_logic;
+  signal habilitaHEX2 : std_logic;
+  signal habilitaHEX3 : std_logic;
+  signal habilitaHEX4 : std_logic;
+  signal habilitaHEX5 : std_logic;
+  signal habilitaReg: std_logic;
+  signal decLedOut : std_logic_vector(7 downto 0); 
+  signal led1 : std_logic;
+  signal led2 : std_logic;
+  signal led_R : std_logic_vector (7 downto 0);
+  signal reg0ToDec : std_logic_vector (3 downto 0);
+  signal reg1ToDec : std_logic_vector (3 downto 0);
+  signal reg2ToDec : std_logic_vector (3 downto 0);
+  signal reg3ToDec : std_logic_vector (3 downto 0);
+  signal reg4ToDec : std_logic_vector (3 downto 0);
+  signal reg5ToDec : std_logic_vector (3 downto 0);
+  signal habilitaSW : std_logic;
+  signal habilitaSW8 : std_logic;
+  signal habilitaSW9 : std_logic;
+  signal habilitaK0 : std_logic;
+  signal habilitaK1 : std_logic;
+  signal habilitaK2 : std_logic;
+  signal habilitaK3 : std_logic;
+  signal habilitaReset : std_logic;
+  signal saidaBuffer3state : std_logic_vector(7 downto 0);
+  signal saidaBuffer1 : std_logic;
+  signal saidaBuffer2 : std_logic;
+  signal saidaBuffer3 : std_logic;
+  signal saidaBuffer4 : std_logic;
+  signal saidaBuffer5 : std_logic;
+  signal saidaBuffer6 : std_logic;
+  signal saidaBuffer7 : std_logic;
+  signal debouncerOut : std_logic;
+  signal Key0_tratado: std_logic;
+  signal habilitaLimpa : std_logic;
+  signal debouncerOutk1 : std_logic;
+  signal Key1_tratado: std_logic;
+  signal habilitaLimpak1 : std_logic;
+  signal limpaTempo : std_logic;
+  signal habilitaTempo : std_logic;
+  signal leituraSeg : std_logic_vector(7 downto 0);
+  signal leituraRap : std_logic_vector(7 downto 0);
+  
+
+	
+  
+begin
+
+-- Instanciando os componentes:
+
+-- Para simular, fica mais simples tirar o edgeDetector
+gravar:  if simulacao generate
+CLK <= KEY(0);
+else generate 
+	CLK <= CLOCK_50;
+end generate;
+
+CPU : entity work.CPU
+		  port map(CLK => CLK,
+					Instruction_IN => romToCPU,
+					Data_IN => dataIn,
+					Data_OUT => dataRam,
+					Data_Address => Data_Address,
+					ROM_Address => cpuToROM,
+					Habilita_R => rd,
+					Habilita_W => wr
+					);
+					  
+DEC :  entity work.decoder3x8
+        port map( entrada => Data_Address(8 downto 6),
+                 saida => decBlockOut);
+					  
+DEC2 :  entity work.decoder3x8
+        port map( entrada => Data_Address(2 downto 0),
+                 saida => decLedOut);
+					  
+ROM1 : entity work.memoriaROM   generic map (dataWidth => 16, addrWidth => 9)
+          port map (Endereco => cpuToROM, Dado => romToCPU);
+
+RAM1 : entity work.memoriaRAM   generic map (dataWidth => 8, addrWidth => 6)
+          port map (addr => Data_Address(5 downto 0), we => wr, re => rd, habilita  => decBlockOut(0), dado_in => dataRAM, dado_out => dataIn , clk => CLK);
+			 
+FF : entity work.flipflop
+          port map (DIN => dataRam(0), DOUT => led1, ENABLE => habilitaFF, CLK => CLK, RST => '0');	
+
+FF2 : entity work.flipflop
+          port map (DIN => dataRam(0), DOUT => led2, ENABLE => habilitaFF2, CLK => CLK, RST => '0');	
+
+REG_LED : entity work.registradorGenerico   generic map (larguraDados => 8)
+          port map (DIN => dataRam, DOUT => led_R, ENABLE => HabilitaReg, CLK => CLK);	 
+			 
+REG_HEX0 : entity work.registradorGenerico   generic map (larguraDados => 4)
+          port map (DIN => dataRam(3 downto 0), DOUT => reg0ToDec, ENABLE => HabilitaHEX0, CLK => CLK);	
+
+REG_HEX1 : entity work.registradorGenerico   generic map (larguraDados => 4)
+          port map (DIN => dataRam(3 downto 0), DOUT => reg1ToDec, ENABLE => HabilitaHEX1, CLK => CLK);	
+
+REG_HEX2 : entity work.registradorGenerico   generic map (larguraDados => 4)
+          port map (DIN => dataRam(3 downto 0), DOUT => reg2ToDec, ENABLE => HabilitaHEX2, CLK => CLK);	
+			 
+REG_HEX3 : entity work.registradorGenerico   generic map (larguraDados => 4)
+          port map (DIN => dataRam(3 downto 0), DOUT => reg3ToDec, ENABLE => HabilitaHEX3, CLK => CLK);	
+			 
+REG_HEX4 : entity work.registradorGenerico   generic map (larguraDados => 4)
+          port map (DIN => dataRam(3 downto 0), DOUT => reg4ToDec, ENABLE => HabilitaHEX4, CLK => CLK);
+			
+REG_HEX5 : entity work.registradorGenerico   generic map (larguraDados => 4)
+          port map (DIN => dataRam(3 downto 0), DOUT => reg5ToDec, ENABLE => HabilitaHEX5, CLK => CLK);	
+			
+DECHEX0 :  entity work.conversorHex7Seg
+        port map(dadoHex => reg0ToDec,
+					  saida7seg => HEX0
+					  );	 	
+		  
+DECHEX1 :  entity work.conversorHex7Seg
+        port map(dadoHex => reg1ToDec,
+					  saida7seg => HEX1
+					  );	 
+
+DECHEX2 :  entity work.conversorHex7Seg
+        port map(dadoHex => reg2ToDec,
+					  saida7seg => HEX2
+					  );	 	
+		 
+DECHEX3 :  entity work.conversorHex7Seg
+        port map(dadoHex => reg3ToDec,
+					  saida7seg => HEX3
+					  );	 	
+		
+DECHEX4 :  entity work.conversorHex7Seg
+        port map(dadoHex => reg4ToDec,
+					  saida7seg => HEX4
+					  );	 	
+		 
+DECHEX5 :  entity work.conversorHex7Seg
+        port map(dadoHex => reg5ToDec,
+					  saida7seg => HEX5
+					  );	 
+					  
+BUF :  entity work.buffer_3_state_8portas
+        port map(entrada => SW(7 downto 0), habilita =>  habilitaSW, saida => dataIn);
+
+BUF1 :  entity work.buffer_3_state_1_bit
+        port map(entrada => SW(8), habilita =>  habilitaSW8, saida => dataIn);
+
+BUF2 :  entity work.buffer_3_state_1_bit
+        port map(entrada => SW(9), habilita =>  habilitaSW9, saida => dataIn);
+		  
+		  
+BUF4 :  entity work.buffer_3_state_1_bit
+        port map(entrada => debouncerOutk1, habilita => habilitaK1 , saida => dataIn);
+		  
+BUF5 :  entity work.buffer_3_state_1_bit
+        port map(entrada => KEY(2), habilita =>  habilitaK2, saida => dataIn);
+		    
+BUF6 :  entity work.buffer_3_state_1_bit
+        port map(entrada => KEY(3), habilita =>  habilitaK3, saida => dataIn);
+		  
+BUF7 :  entity work.buffer_3_state_1_bit
+        port map(entrada =>  FPGA_RESET_N, habilita =>  habilitaReset, saida => dataIn);
+
+BUF8 :  entity work.buffer_3_state_1_bit
+        port map(entrada => debouncerOut , habilita =>  habilitaK0, saida => dataIn);
+
+DETECTOR_K0: work.edgeDetector(bordaSubida)
+        port map (clk => CLOCK_50, entrada => NOT KEY(0), saida => Key0_tratado );
+
+DETECTOR_K1: work.edgeDetector(bordaSubida)
+        port map (clk => CLOCK_50, entrada => NOT KEY(1), saida => Key1_tratado );
+		  
+FF3 : entity work.flipflop
+          port map (DIN => '1', DOUT => debouncerOut , ENABLE => '1', CLK => Key0_tratado, RST => habilitaLimpa);	
+
+FF4 : entity work.flipflop
+          port map (DIN => '1', DOUT => debouncerOutk1 , ENABLE => '1', CLK => Key1_tratado, RST => habilitaLimpak1);		 
+
+interfaceBaseTempo : entity work.divisorGenerico_e_Interface
+              port map (clk => CLK,
+              habilitaLeitura =>  habilitaK0,
+				  seletor => SW(9),
+              limpaLeitura => habilitaLimpa,
+              leituraUmSegundo => dataIn);
+
+ 
+habilitaFF <= wr AND decBlockOut(4) AND decLedOut(2) AND NOT Data_Address(5);	
+habilitaFF2 <= wr AND decBlockOut(4) AND decLedOut(1) AND NOT Data_Address(5);
+habilitaHEX0 <= wr AND decBlockOut(4) AND decLedOut(0) AND Data_Address(5);
+habilitaHEX1 <= wr AND decBlockOut(4) AND decLedOut(1) AND Data_Address(5);
+habilitaHEX2 <= wr AND decBlockOut(4) AND decLedOut(2) AND Data_Address(5);
+habilitaHEX3 <= wr AND decBlockOut(4) AND decLedOut(3) AND Data_Address(5);
+habilitaHEX4 <= wr AND decBlockOut(4) AND decLedOut(4) AND Data_Address(5);
+habilitaHEX5 <= wr AND decBlockOut(4) AND decLedOut(5) AND Data_Address(5);
+habilitaReg <= wr AND decBlockOut(4) AND decLedOut(0) AND NOT Data_Address(5);
+
+habilitaSW <= rd AND decBlockOut(5) AND decLedOut(0) AND NOT Data_Address(5);	
+habilitaSW8 <= rd AND decBlockOut(5) AND decLedOut(1) AND NOT Data_Address(5);	
+habilitaSW9 <= rd AND decBlockOut(5) AND decLedOut(2) AND NOT Data_Address(5);
+
+habilitaK0 <= rd AND decBlockOut(5) AND decLedOut(0) AND Data_Address(5);
+habilitaK1 <= rd AND decBlockOut(5) AND decLedOut(1) AND Data_Address(5);
+habilitaK2 <= rd AND decBlockOut(5) AND decLedOut(2) AND Data_Address(5);
+habilitaK3 <= rd AND decBlockOut(5) AND decLedOut(3) AND Data_Address(5);
+habilitaReset <= rd AND decBlockOut(5) AND decLedOut(4) AND Data_Address(5);
+
+habilitaLimpa <= wr AND Data_Address(0) AND	Data_Address(1) AND	Data_Address(2) AND	Data_Address(3)
+						AND	Data_Address(4) AND	Data_Address(5) AND	Data_Address(6) AND	Data_Address(7)
+						AND	Data_Address(8);
+
+habilitaLimpak1 <= wr AND	not Data_Address(0) AND	Data_Address(1) AND	Data_Address(2) AND	Data_Address(3)
+						AND	Data_Address(4) AND	Data_Address(5) AND	Data_Address(6) AND	Data_Address(7)
+						AND Data_Address(8);
+	
+	
+LEDR (9) <= led1;
+LEDR (8) <= led2;
+LEDR (7 downto 0) <= led_R;
+PC_OUT <= cpuToROM;
+Dado_HEX <= dataRam(3 downto 0);
+
+
+end architecture;

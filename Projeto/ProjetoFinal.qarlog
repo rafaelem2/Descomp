@@ -1,0 +1,35 @@
+Quartus Prime Archive log --	/home/rafaelem2/projetos/EntregaFinal/Projeto/ProjetoFinal.qarlog
+
+Archive:	/home/rafaelem2/projetos/EntregaFinal/Projeto/ProjetoFinal.qar
+Date:		Sat Nov  5 01:40:27 2022
+Quartus Prime		20.1.0 Build 711 06/05/2020 SJ Lite Edition
+
+	=========== Files Selected: ===========
+/home/rafaelem2/projetos/EntregaFinal/Projeto/ ULASomaSub.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/Atv1.qpf
+/home/rafaelem2/projetos/EntregaFinal/Projeto/Atv1.qsf
+/home/rafaelem2/projetos/EntregaFinal/Projeto/Aula8.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/CPU.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/Waveform.vwf
+/home/rafaelem2/projetos/EntregaFinal/Projeto/assignment_defaults.qdf
+/home/rafaelem2/projetos/EntregaFinal/Projeto/bancoRegistradoresArqRegMem.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/buffer_3_state_1_bit.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/buffer_3_state_8portas.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/conversorHex7Seg .vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/decoder3x8.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/decoderInstru.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/divisorGenerico.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/divisorGenerico_e_Interface.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/edgeDetector.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/flipflop.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/memoriaRAM.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/memoriaROM.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/mux2x1.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/muxGenerico2x1.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/muxGenerico4x1.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/registradorGenerico.vhd
+/home/rafaelem2/projetos/EntregaFinal/Projeto/somaConstante.vhd
+	======= Total: 24 files to archive =======
+
+	================ Status: ===============
+All files archived successfully.
